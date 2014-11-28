@@ -53,7 +53,7 @@ public TCiara(double x1, double y1, double x2, double y2,  String m, Color f, do
     farba = f;
     hrubka = h;
     styl = s;
-    
+    //System.out.println(x1 + ","+ y1+",: "+ x2 + ","+ y2 );
 }
 
 /** 
@@ -218,4 +218,19 @@ public void posunCiaru(double x1, double y1){
     void vymazZ() {
         if (body.size() > 2 ) body.remove(0);
     }
+    
+    public double getLength(){
+        double l = 0;
+        Bod a = new Bod();
+        Bod b = new Bod();
+        for (int i=0; i+1<body.size(); i++){
+            a = body.get(i);
+            b = body.get(i+1);
+            
+            l+=Math.sqrt( Math.pow(a.x-b.x, 2) + Math.pow(a.y-b.y, 2));
+        }    
+        return l/100;
+    }
+    
+    
 }

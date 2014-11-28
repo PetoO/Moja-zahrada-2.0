@@ -6,38 +6,30 @@
 package tis;
 
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -45,9 +37,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -101,6 +90,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
     private BufferedImage leg;
 
     final int METERS_TO_PIXELS = 100;
+    
+    DecimalFormat df = new DecimalFormat("#0.#");
 
     /**
      * konštruktor triedy TPlan, nepotrebuje parametre, všetko potrebné sa nastaví priamo v ňom
@@ -179,6 +170,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
         g.translate(-MovedX, -MovedY);
 
         paintRuz(g);
+        kresliMierku((Graphics2D) g);
 
     }
     /**
@@ -496,6 +488,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                         edited.edited = false;
                     }
                     edited = prvok;
+                    TIS.vr.setInformationLabel( df.format(plocha.getArea()/(scale*scale)) + " m2");      //vypise rozlohu pri kliknuti na plcohu
                     edited.edited = true;
                     if (e.getClickCount() == 2) {
                         showInfo(prvok.meno);
@@ -508,8 +501,10 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 if (ciara.isNear(e.getX() - MovedX, e.getY() - MovedY)) {
                     if (edited != null) {
                         edited.edited = false;
+                        
                     }
                     edited = prvok;
+                    TIS.vr.setInformationLabel( df.format(ciara.getLength()/scale) + " m");      //po kliknuti na ciaru sa ukaze jej dlzka
                     edited.edited = true;
                     if (e.getClickCount() == 2) {
                         showInfo(prvok.meno);
@@ -519,6 +514,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             }
             if (edited != null) {
                 edited.edited = false;
+                TIS.vr.setInformationLabel( "info"); // po kliknuti mimo prvku sa ukaze info text
             }
             edited = null;
         }
@@ -575,7 +571,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 if ((kliknutyBod == 0) && (e.isControlDown())) {
                     prvok.novyBodZ(e.getX() - MovedX, e.getY() - MovedY);
                 }
-                return;
+                
+                return;              
             }
 
             if (edited instanceof TCiara) {
@@ -603,9 +600,11 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 if ((kliknutyBod == 0) && e.isControlDown()) {
                     prvok.novyBodZ(e.getX() - MovedX, e.getY() - MovedY);
                 }
+                
                 return;
             }
             kliknutyBod = -1;
+            
         }
     }
     
@@ -667,6 +666,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 TPlocha prvok = ((TPlocha) edited);
                 if (kliknutyBod >= 0) {
                     prvok.zmenVelkost(kliknutyBod, e.getX() - MovedX, e.getY() - MovedY);
+                    TIS.vr.setInformationLabel( df.format(prvok.getArea()/scale) + " m2");    // vpise rozlohu pri meneni plochy
                 } else {
                     prvok.presun(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY);
                     if (jeMimoPlochy(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY)) {
@@ -679,6 +679,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 if (kliknutyBod >= 0) {
                     prvok.presun(kliknutyBod, x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY);
                     System.out.println(kliknutyBod + " z " + prvok.body.size());
+                    TIS.vr.setInformationLabel( df.format(prvok.getLength()/scale) + " m");                                        // rata automaticky dlzku kreslenej ciary
                 } else {
                     prvok.posunCiaru(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY);
                     if (jeMimoPlochy(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY)) {
@@ -899,5 +900,60 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
+    }
+    
+    //peto
+    
+    private void kresliMierku(Graphics2D g) {
+            int iw = TIS.vr.getWidth();
+            int ih = TIS.vr.getHeight();
+            int y=ih-100;
+            g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g.setColor(Color.BLACK);
+            g.drawLine(120, y, iw-200 , y);
+            double m= 100*scale;
+            int i=0;
+            g.setFont(new Font("Serif", Font.PLAIN, 18) );
+            
+            double c=120;
+            g.drawString("meter" ,(int) c , y-10);
+            
+            while(c<=iw-200){
+                g.drawLine((int) c, y-5, (int) c , y+5);
+                g.drawString(i+"" ,(int) c-4 , y+20);
+                c+=m;
+                i++;
+            };
+            
+            //g.drawImage(ruz, 0, TIS.vr.getHeight() - ruz.getHeight() - 55, iw, ih, TIS.G);
+            //ruzica bude vlavo dole
+    }
+    
+    public void zmenPozadie(){
+        
+        ZmenaPozadia frame = new ZmenaPozadia(this);
+        //frame.setSize(300, 500);
+        
+       // JPanel panel = new JPanel();
+       // JScrollPane scrollPane = new JScrollPane(panel);
+       // scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+       // scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);          
+       // JTabulka G = new JTabulka(prvky, scrollPane);
+        
+        //frame.setContentPane(G);
+
+        frame.setVisible(true);
+        frame.repaint();
+    }
+    
+        public void zmenPozadieNa(String cesta, int sirka, int vyska){
+            try {
+                poz = ImageIO.read(new File(cesta));
+            } 
+            catch (Exception e) {
+                JFrame frame= new JFrame();
+                JOptionPane.showMessageDialog(frame, "Zly typ obrazka");
+            }
+        
     }
 }

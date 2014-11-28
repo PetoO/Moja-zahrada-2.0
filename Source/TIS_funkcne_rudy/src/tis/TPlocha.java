@@ -224,4 +224,23 @@ public void novyBodZ(double x1, double y1) {
     void vymazZ() {
         if (body.size() > 2 ) body.remove(0);
     }
+    
+    public double getArea(){
+        double d = 0;
+        if(body.size()>=2){
+            Bod a = new Bod();
+            Bod b = new Bod();
+            a=body.get(0);
+            b=body.get(body.size()-1);
+            d=((a.y*b.x)-(a.x*b.y));
+                    
+            for (int i=0; i+1<body.size(); i++){
+                a = body.get(i);
+                b = body.get(i+1);
+                d+=((a.x*b.y) - (a.y*b.x));
+            } 
+        }
+    
+       return Math.abs(d/20000); 
+    }
 }
