@@ -30,6 +30,8 @@ import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -37,6 +39,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.RowFilter.Entry;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -51,7 +54,7 @@ import org.apache.poi.ss.usermodel.Cell;
 public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
 
     //tabulka do ktorej sa načítajú údaje z excellu 
-    private HashMap<String, ArrayList<String>> excel = new HashMap<String, ArrayList<String>>();
+    public HashMap<String, ArrayList<String>> excel = new HashMap<String, ArrayList<String>>();
 
     //prvy vložené v ploche
     private ArrayList<TPrvok> prvky;
@@ -66,7 +69,24 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
     public TCiara aktivnaCiara;
     public TPlocha aktivnaPlocha;
     //cvaky
+    
+    
+    //peto
+    // bod ktorym sa zobrazia kolizie
+    TBod kolizia;
+    
+    //vsetky kolizie
+    //ArrayList<TBod> kolizie;
+    HashMap<TBod, ArrayList<TBod>> kolizie;
+    
+    public boolean zobrazKolizie;
 
+    public boolean textura;
+    
+    public int sadenie=0;
+    
+    public boolean mriezka;
+    
     //rozmery su rozmery pozemku v pixeloch cize cm, x,y a x1,y1 su pomocne premenne vyuzivane pri kliknuti, 
     //moved premenne sa menie pri tahani plochy po obrazovke
     int rozmerX = 1000;
@@ -82,7 +102,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
     private int uhol = 1, kliknutyBod = -1;
     double scale;
 
-    private TPrvok edited = null;
+    TPrvok edited = null;
     private boolean deleteEdited = false;
 
     private BufferedImage ruz, ruz1, ruz2, ruz3, ruz4;
@@ -103,16 +123,20 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
         prvky = new ArrayList<TPrvok>();
         historia = new ArrayList<ByteArrayOutputStream>();
         scale = 1;
-        
+        mriezka=true;
 
-        aktivnyBod = new TBod(0, 0, null, Color.red, 2, 1, 2);
+        aktivnyBod = new TBod(0, 0, null, Color.red, 2, 1, 2, sadenie);
         aktivnaCiara = new TCiara(0, 0, 0, 0, null, Color.red, 0, 0);
         aktivnaPlocha = new TPlocha(0, 0, 0, 0, null, Color.red, 2, 2);
         aktivnyPrvokInt = 0;
         
-
-        change();
+        kolizie = new HashMap<TBod, ArrayList<TBod>>();
         
+        zobrazKolizie = true; // false
+
+        change(); 
+        
+        textura=true;
 
         //nacitat obrazok pozadia, ruzice a legnedy
         try {
@@ -142,22 +166,30 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
         if (MovedY < 100 && MovedY >= 80) {
             MovedY = 80;
         }
-        
-   
+
         g.translate(MovedX, MovedY);
 
-        
-        
         paintBackground(g);
-        paintGrid(g);
+        if(mriezka){
+            paintGrid(g);
+        }
+        
         for (TPrvok prvok : prvky) {
             prvok.draw((Graphics2D) g);
-
+            //just testing
+            if(prvok instanceof TBod){
+                TBod bod= (TBod) prvok;
+                //TBod bood= new TBod(0, 0, null, Color.BLACK, 2, 1,(int) bod.velkost+bod.hrubka/2+30);
+                //bood.presun((int)(bod.x - (bod.velkost/2) - bod.hrubka + 15), (int) (bod.y- (bod.velkost/2) - bod.hrubka + 15));  
+                //kolizie.add(bod);
+            }
         }
+        nastavKolizie();
 
         //cvaky
         if (aktivnyBod != null) {
             aktivnyBod.draw((Graphics2D) g);
+            //System.out.println("kreslim aktivny bod");
         }
         if (aktivnaCiara != null) {
             aktivnaCiara.draw((Graphics2D) g);
@@ -165,13 +197,15 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
         if (aktivnaPlocha != null) {
             aktivnaPlocha.draw((Graphics2D) g);
         }
-
+        
+        
         //cvaky
         g.translate(-MovedX, -MovedY);
 
         paintRuz(g);
-        kresliMierku((Graphics2D) g);
 
+        kresliMierku((Graphics2D) g);
+        
     }
     /**
      * Funkcia na zoomovanie plochy
@@ -293,8 +327,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
     /**
      * zobrazí popup tabuľku s prvkami na ploche, ich meno a obrazok (legendu)
      */
-
-    public void zobrazTabulku() {
+    
+    public void zobrazLegendu(){
         JFrame frame = new JFrame();
         frame.setSize(300, 500);
         
@@ -304,14 +338,16 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);        
         
         JTabulka G = new JTabulka(prvky, scrollPane);
-        
-        
         frame.setContentPane(G);
-        
-        
-     
+
         frame.setVisible(true);
         frame.repaint();
+    
+    }
+
+    public void zobrazTabulku() {
+        JFrame frame = new TabulkaPrvkov(prvky, excel);
+        frame.setVisible(true);
     }
 
     /**
@@ -320,6 +356,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
      * @return vrati true ak sa podarilo pridanie prvku, ak nie vrati false
      */
     public boolean addPrvok(TPrvok prvok) {
+        //zobrazKolizie = true;
         if (prvok != null) {
             boolean result = prvky.add(prvok);
             change();
@@ -338,6 +375,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             edited = null;
             boolean result = prvky.remove(prvok);
             change();
+            
+            nastavKolizie();
             return result;
         }
         return false;
@@ -371,11 +410,17 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
      */
     private void paintBackground(Graphics g) {
         if (poz != null && showGrass) {
-            Graphics2D g2 = (Graphics2D) g;
-            Rectangle r = new Rectangle(0, 0, poz.getWidth(), poz.getHeight());
-            g2.setPaint(new TexturePaint(poz, r));
-            Rectangle rect = new Rectangle(0, 0, (int) (rozmerX * scale) + 1, (int) (rozmerY * scale) + 1);
-            g2.fill(rect);
+            //textura=false;
+            if(textura){
+                Graphics2D g2 = (Graphics2D) g;
+                Rectangle r = new Rectangle(0, 0, poz.getWidth(), poz.getHeight());
+                g2.setPaint(new TexturePaint(poz, r));
+                Rectangle rect = new Rectangle(0, 0, (int) (rozmerX * scale) + 1, (int) (rozmerY * scale) + 1);
+                g2.fill(rect);
+            } else {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.drawImage(poz, 0, 0, getWidth() - 1, getHeight() - 1, 0, 0, poz.getWidth() - 1, poz.getHeight() - 1, null);
+            }
         } else {
             g.setColor(Color.lightGray);
             g.fillRect(0, 0, (int) (rozmerX * scale) + 1, (int) (rozmerY * scale) + 1);
@@ -471,12 +516,18 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                         edited.edited = false;
                     }
                     edited = prvok;
+                    TIS.vr.setInformationLabel(prvok.meno);
+                    zobrazKolizie = true;                                       // OZNACIL SOM PRVOK, ZOBRAZIM KOLIZIE
                     edited.edited = true;
+                    System.out.println((bod.hrubka+bod.velkost));
+                    nastavSadenie(bod.sadenie);
+                    
                     if (e.getClickCount() == 2) {
                         showInfo(prvok.meno);
                     }
                     break;
                 }
+                zobrazKolizie = false;
             }
 
             if (prvok instanceof TPlocha) {
@@ -488,8 +539,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                         edited.edited = false;
                     }
                     edited = prvok;
-                    TIS.vr.setInformationLabel( df.format(plocha.getArea()/(scale*scale)) + " m2");      //vypise rozlohu pri kliknuti na plcohu
-                    edited.edited = true;
+                    TIS.vr.setInformationLabel(prvok.meno+" "  +df.format(plocha.getArea()/(scale*scale)) + " m2");      //vypise rozlohu pri kliknuti na plcohu
+                    edited.edited = true;   
                     if (e.getClickCount() == 2) {
                         showInfo(prvok.meno);
                     }
@@ -504,7 +555,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                         
                     }
                     edited = prvok;
-                    TIS.vr.setInformationLabel( df.format(ciara.getLength()/scale) + " m");      //po kliknuti na ciaru sa ukaze jej dlzka
+                    TIS.vr.setInformationLabel(prvok.meno+" "+ df.format(ciara.getLength()/scale) + " m");      //po kliknuti na ciaru sa ukaze jej dlzka
                     edited.edited = true;
                     if (e.getClickCount() == 2) {
                         showInfo(prvok.meno);
@@ -515,6 +566,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             if (edited != null) {
                 edited.edited = false;
                 TIS.vr.setInformationLabel( "info"); // po kliknuti mimo prvku sa ukaze info text
+                zobrazKolizie = false;                                                          // odznacim prvok zobrazi zrusim kolizie
             }
             edited = null;
         }
@@ -531,7 +583,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
         TIS.G.requestFocus();
         x = e.getXOnScreen() - MovedX;
         y = e.getYOnScreen() - MovedY;
-
+        
         if (edited != null) {
             if (edited instanceof TBod) {
                 TBod prvok = ((TBod) edited);
@@ -544,6 +596,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                     prvok.presun((int)(x1),(int)(y1));
                 }
                 return;
+                
             }
             if (edited instanceof TPlocha) {
                 TPlocha prvok = ((TPlocha) edited);
@@ -617,6 +670,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
     public void mouseReleased(MouseEvent e) {
         if (draging) {
             if (deleteEdited) {
+                zruskoliziu(edited);
                 delPrvok(edited);
                 deleteEdited = false;
             } else {
@@ -643,15 +697,24 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
      */
     @Override
     public void mouseDragged(MouseEvent e) {
+        
        TIS.vr.repaint();
         if (edited == null) {
             MovedX = e.getXOnScreen() - x;
             MovedY = e.getYOnScreen() - y;
         } else {
             if (edited instanceof TBod) {
+                // sem pojde sadenie,, a pripajanaie bodov na dane body ..boomba  
                 TBod prvok = ((TBod) edited);
-                if (kliknutyBod > 0) {
-                    prvok.presun((int) x1 + e.getXOnScreen() - x - MovedX, (int) y1 + e.getYOnScreen() - y - MovedY);
+                if (kliknutyBod > 0) { 
+                    TIS.vr.setInformationLabel(prvok.meno); 
+                    if(sadenie==0){
+                        e.getX();
+                        //prvok.presun((int) x1 + e.getX() - x - MovedX, (int) y1 + e.getY() - y - MovedY);
+                        prvok.presun((int) x1 + e.getXOnScreen() - x - MovedX, (int) y1 + e.getYOnScreen() - y - MovedY);
+                    } else{
+                        pripoj(prvok,MovedX,MovedY, e.getXOnScreen(),e.getYOnScreen(),x,y);
+                    }
                     if (jeMimoPlochy(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY)) {
                         deleteEdited = true;
                     }
@@ -666,7 +729,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 TPlocha prvok = ((TPlocha) edited);
                 if (kliknutyBod >= 0) {
                     prvok.zmenVelkost(kliknutyBod, e.getX() - MovedX, e.getY() - MovedY);
-                    TIS.vr.setInformationLabel( df.format(prvok.getArea()/scale) + " m2");    // vpise rozlohu pri meneni plochy
+                    TIS.vr.setInformationLabel(prvok.meno+" "  + df.format(prvok.getArea()/scale) + " m2");    // vpise rozlohu pri meneni plochy
                 } else {
                     prvok.presun(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY);
                     if (jeMimoPlochy(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY)) {
@@ -678,8 +741,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 TCiara prvok = ((TCiara) edited);
                 if (kliknutyBod >= 0) {
                     prvok.presun(kliknutyBod, x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY);
-                    System.out.println(kliknutyBod + " z " + prvok.body.size());
-                    TIS.vr.setInformationLabel( df.format(prvok.getLength()/scale) + " m");                                        // rata automaticky dlzku kreslenej ciary
+                   //System.out.println(kliknutyBod + " z " + prvok.body.size());
+                    TIS.vr.setInformationLabel( prvok.meno+" "  +df.format(prvok.getLength()/scale) + " m");                                        // rata automaticky dlzku kreslenej ciary
                 } else {
                     prvok.posunCiaru(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY);
                     if (jeMimoPlochy(x1 + e.getXOnScreen() - x - MovedX, y1 + e.getYOnScreen() - y - MovedY)) {
@@ -706,6 +769,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             oos.writeObject(prvky);
             oos.writeObject(rozmerX);
             oos.writeObject(rozmerY);
+            //oos.writeObject(new ArrayList<BufferedImage>().add(poz));
+            //oos.writeObject(textura);
         } catch (IOException ex) {
             Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -723,6 +788,9 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             prvky = (ArrayList<TPrvok>) ois.readObject();
             rozmerX = (int) ois.readObject();
             rozmerY = (int) ois.readObject();
+            //ArrayList<BufferedImage> pozz = (ArrayList<BufferedImage>) ois.readObject();
+            //poz = pozz.get(0);
+            //textura = (boolean ) ois.readObject();
         } catch (IOException ex) {
             Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -860,6 +928,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                         }
                     }
                     excel.put(meno, list); //do hashmapy priradí celý riadok tabuľku s kľúčom meno prvku   
+                   //System.out.println(meno + list);
                 }
             }
         } catch (Exception ioe) {
@@ -873,7 +942,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
      * @param meno menu vybraného prvku
      */
     void showInfo(String meno) {
-        JInfo info = new JInfo();
+        JInfo info = new JInfo(prvky);
         info.setVisible(true);
         info.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         if (excel.get(meno) != null) {
@@ -892,6 +961,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == 127) {
+            zruskoliziu(edited);
             delPrvok(edited);
             TIS.vr.repaint();
         }
@@ -904,6 +974,10 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
     
     //peto
     
+    
+     /**
+     * nakresli mierku v metroch 
+     */
     private void kresliMierku(Graphics2D g) {
             int iw = TIS.vr.getWidth();
             int ih = TIS.vr.getHeight();
@@ -929,31 +1003,267 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             //ruzica bude vlavo dole
     }
     
+     /**
+     * zavola dialog na zmenu pozadia 
+     */
     public void zmenPozadie(){
         
         ZmenaPozadia frame = new ZmenaPozadia(this);
-        //frame.setSize(300, 500);
-        
-       // JPanel panel = new JPanel();
-       // JScrollPane scrollPane = new JScrollPane(panel);
-       // scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-       // scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);          
-       // JTabulka G = new JTabulka(prvky, scrollPane);
-        
-        //frame.setContentPane(G);
-
         frame.setVisible(true);
         frame.repaint();
     }
     
-        public void zmenPozadieNa(String cesta, int sirka, int vyska){
-            try {
-                poz = ImageIO.read(new File(cesta));
-            } 
-            catch (Exception e) {
-                JFrame frame= new JFrame();
-                JOptionPane.showMessageDialog(frame, "Zly typ obrazka");
-            }
+     /**
+     * zmeni pozadia, nastavi velkost planika 
+     */
+    public void zmenPozadieNa(String cesta, double sirka, double vyska, boolean textura){
+        try {
+            
+            TIS.planik.nastavXY((int) (sirka * 100), (int) (vyska * 100));
+            TIS.vr.setDimensionText(Double.toString(sirka),Double.toString(vyska));
+            this.textura=textura;
+            poz = ImageIO.read(new File(cesta));
+        } 
+        catch (Exception e) {
+            JFrame frame= new JFrame();
+            JOptionPane.showMessageDialog(frame, "Zly typ obrazka");
+        }
         
     }
+        
+     /**
+     * nastavi kolizie pre neznasanlivost, a nedostatok miesta
+     */
+    public void nastavKolizie (){
+        for(int i=0; i < prvky.size(); i++){
+            for(int j=0; j < prvky.size(); j++){
+                if(i!=j){
+                    if((prvky.get(i) instanceof TBod) && (prvky.get(j) instanceof TBod) ){
+                        TBod bod1 = (TBod) prvky.get(i);
+                        TBod bod2 = (TBod) prvky.get(j);    
+                        
+                        if(!kolizie.containsKey(bod1)){
+                            kolizie.put(bod1, new ArrayList<TBod>());
+                        }
+                        
+                        if(!kolizie.containsKey(bod2)){
+                            kolizie.put(bod2, new ArrayList<TBod>());
+                        }
+                        //System.out.println(bod1.meno+" "+bod2.meno+" "+Math.sqrt(Math.pow((double)bod1.x-bod2.x, 2)+Math.pow((double)bod1.y-bod2.y, 2))+" "+(bod1.velkost+bod1.hrubka+bod2.velkost+bod2.hrubka));
+                        // treba dorobit, konstanta 30 je len pre stromy
+                        if((((bod1.velkost+bod1.hrubka+bod2.velkost+bod2.hrubka)/2)+30*(scale))>=Math.sqrt(Math.pow((double)bod1.x-bod2.x, 2)+Math.pow((double)bod1.y-bod2.y, 2))){
+                            //zistim ci su kolizie medzi kermi a stromami inak zistujem kolizie medzi neznasanlivymi rastlinami
+                            if(bod1.sadenie!=0 && bod2.sadenie!=0 && bod1.sadenie==bod2.sadenie){
+                                break;
+                            }
+                            
+                            if(
+                            excel.containsKey(bod1.meno) && excel.containsKey(bod2.meno)&&(
+                            excel.get(bod1.meno).get(2).equals("strom") || 
+                            excel.get(bod1.meno).get(2).equals("ker") ) && (
+                            excel.get(bod2.meno).get(2).equals("strom") || 
+                            excel.get(bod2.meno).get(2).equals("ker")  )
+                            ){                 
+                                if(!kolizie.get(bod1).contains(bod2)){
+                                    kolizie.get(bod1).add(bod2);
+                                }
+                                if(!kolizie.get(bod2).contains(bod1)){
+                                    kolizie.get(bod2).add(bod1);
+                                }
+                            }
+                            //zistujem neznasanlivost 
+                            else{
+                                if(excel.containsKey(bod1.meno) && excel.containsKey(bod2.meno)){
+                                    if(excel.get(bod1.meno).get(12).toLowerCase().contains(excel.get(bod2.meno).get(1).toLowerCase())){
+                                        if(!kolizie.get(bod1).contains(bod2)){
+                                            kolizie.get(bod1).add(bod2);
+                                        }
+                                        if(!kolizie.get(bod2).contains(bod1)){
+                                            kolizie.get(bod2).add(bod1);
+                                        }
+                                        break;
+                                    }
+                                    if(excel.get(bod2.meno).get(12).toLowerCase().contains(excel.get(bod1.meno).get(1).toLowerCase())){
+                                        if(!kolizie.get(bod1).contains(bod2)){
+                                            kolizie.get(bod1).add(bod2);
+                                        }
+                                        if(!kolizie.get(bod2).contains(bod1)){
+                                            kolizie.get(bod2).add(bod1);
+                                        }
+                                        break;
+                                    }
+
+                                }    
+                            }    
+                            
+                        } else {
+                            // ak su v kolizii, vyhodim
+                            if(kolizie.get(bod1).contains(bod2)){
+                                kolizie.get(bod1).remove(bod2);
+                            }
+                            if(kolizie.get(bod2).contains(bod1)){
+                                kolizie.get(bod2).remove(bod1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }                  
+    
+     /**
+     * nastavi sadenie ktore sa aplikuje na nove prvky pridane do planika
+     */
+    public void nastavSadenie(int sadenie){
+        this.sadenie=sadenie;
+        System.out.println("zmena sadenia na: "+ sadenie);
+        TIS.vr.nastavSadenie(sadenie);
+    }
+    
+     /**
+     * zrusi kolizie medzi prvkami z ktorych nejaky uz neexistuje
+     */
+
+    public void zruskoliziu(TPrvok edited) {
+        if(!(edited instanceof TBod)){
+            return;
+        }
+        
+        System.out.println("zrus");
+        if(kolizie.containsKey(edited)){
+            kolizie.remove(edited);
+        }
+        for (Map.Entry<TBod, ArrayList<TBod>> entry : kolizie.entrySet()) {
+            TBod key = entry.getKey();
+            ArrayList<TBod> value = entry.getValue();
+            if(value.contains(edited)){
+                value.remove(edited);
+                System.out.println("removed" + edited.meno);
+            }
+        }           
+    }
+
+     /**
+     * podla druhu sadenia pomaha nastavit zrovnanie oznaceneho prvku a najblizsieho prvku rovnakeho druhu a sadenia 
+     */
+    public void pripoj(TBod prvok, int MovedX, int MovedY, int xOnScreen, int yOnScreen, int x, int y) {
+        //xxx a yyy: kde by sa mal prvok posunut 
+        int xxx=(int) x1 + xOnScreen - x - MovedX; 
+        int yyy=(int) y1 + yOnScreen - y - MovedY;
+        int distance=1000000;
+        TBod prvok2=null;
+        TBod prvok3;
+        int dd;
+        System.out.println(xxx +" : " + yyy);
+        // najdem najblizzsi prvok rovnakeho sadenia
+        for (TPrvok prvokk : prvky){
+            if(!(prvokk.equals(prvok)) && (prvokk instanceof TBod)){
+                System.out.println("mam TBod nerovny s povodnym");
+                prvok3 = (TBod) prvokk;
+                if(prvok3.sadenie!=prvok.sadenie || prvok3.velkost!=prvok.velkost){
+                    System.out.println(prvok3.meno+" "+prvok3.sadenie +" a "+ prvok.meno+" "+prvok.sadenie+  " nemaju rovnake sadenie");
+                     continue;
+                }
+                dd = (int) Math.sqrt(Math.pow((double)prvok.x-prvok3.x, 2)+Math.pow((double)prvok.y-prvok3.y, 2));
+                if(dd<(prvok3.hrubka+prvok3.velkost+36*scale) && dd<distance){
+                    System.out.println("vzdialenost prvkov je mensia ako 20 a ako najmensia distance");
+                    distance=(int)dd;
+                    prvok2=prvok3;
+                }
+            }
+        }
+        System.out.println(prvok2!=null);
+  
+        if(prvok2==null){
+            System.out.println("prvok2 je null ");
+            prvok.presun(xxx,yyy);
+            return;
+        }
+        
+        if(sadenie==1){
+            System.out.println("vsetko ok, prvok by sa mal presunut");
+            //4 body na ktore sa bude lepit
+            //0 x - 1 y
+            int[][] body = new int[4][2];
+            body[0][0]= (int) prvok2.x;
+            body[0][1]= (int) (prvok2.y-(prvok2.velkost+prvok2.hrubka+30));
+            
+            body[1][0]= (int) (prvok2.x+prvok2.velkost+prvok2.hrubka+30);
+            body[1][1]= (int) (prvok2.y);
+            
+            body[2][0]= (int) prvok2.x;
+            body[2][1]= (int) (prvok2.y+prvok2.velkost+prvok2.hrubka+30);
+            
+            body[3][0]= (int) (prvok2.x-(prvok2.velkost+prvok2.hrubka+30));
+            body[3][1]= (int) (prvok2.y);
+            
+            int[] dist = new int[4];
+            
+            int naj=-5;
+            int najpom=1000000;
+            for(int i=0; i<dist.length; i++){      
+                dist[i]= (int) Math.sqrt(Math.pow((double)body[i][0]-xxx, 2)+Math.pow((double)body[i][1]-yyy, 2));
+                if(dist[i]< najpom){
+                    najpom=dist[i];
+                    naj=i;
+                }
+            }
+
+            if(dist[naj]>(prvok2.hrubka+prvok2.velkost+16*scale)){
+                System.out.println("xxxx"+dist[naj]);
+                prvok.presun(xxx,yyy);
+            }else{
+                System.out.println("yyyyy");
+                prvok.presun((int)body[naj][0],(int)body[naj][1]);
+            }
+            return;
+        }
+        if(sadenie==2){
+            System.out.println("vsetko ok, prvok by sa mal presunut");
+            //4 body na ktore sa bude lepit
+            //0 x - 1 y
+            int[][] body = new int[6][2];
+            body[0][0]= (int) (prvok2.x+(prvok2.velkost+prvok2.hrubka+30)/2);
+            body[0][1]= (int) (prvok2.y-(prvok2.velkost+prvok2.hrubka+30));
+            
+            body[1][0]= (int) (prvok2.x+prvok2.velkost+prvok2.hrubka+30);
+            body[1][1]= (int) (prvok2.y);
+            
+            body[2][0]= (int) (prvok2.x+(prvok2.velkost+prvok2.hrubka+30)/2);
+            body[2][1]= (int) (prvok2.y+prvok2.velkost+prvok2.hrubka+30);
+            
+            body[3][0]= (int) (prvok2.x-(prvok2.velkost+prvok2.hrubka+30)/2);
+            body[3][1]= (int) (prvok2.y+prvok2.velkost+prvok2.hrubka+30);
+            
+            body[4][0]= (int) (prvok2.x-(prvok2.velkost+prvok2.hrubka+30));
+            body[4][1]= (int) (prvok2.y);
+            
+            body[5][0]= (int) (prvok2.x-(prvok2.velkost+prvok2.hrubka+30)/2);
+            body[5][1]= (int) (prvok2.y-(prvok2.velkost+prvok2.hrubka+30));
+            
+            int[] dist = new int[6];
+            
+            int naj=-5;
+            int najpom=1000000;
+            for(int i=0; i<dist.length; i++){      
+                dist[i]= (int) Math.sqrt(Math.pow((double)body[i][0]-xxx, 2)+Math.pow((double)body[i][1]-yyy, 2));
+                if(dist[i]< najpom){
+                    najpom=dist[i];
+                    naj=i;
+                }
+            }
+
+            if(dist[naj]>(prvok2.hrubka+prvok2.velkost+20*scale)){
+                System.out.println("xxxx"+dist[naj]);
+                prvok.presun(xxx,yyy);
+            }else{
+                System.out.println("yyyyy");
+                prvok.presun((int)body[naj][0],(int)body[naj][1]);
+            }
+            return;
+        }
+        
+        prvok.presun(xxx,yyy);
+    }
+       
 }

@@ -53,7 +53,7 @@ public class JTabulka extends JPanel {
             
             if (prvok instanceof TBod) {
                 TBod bod = (TBod) prvok;
-                TBod bodObr = new TBod(160.0 - bod.velkost, y+30- bod.velkost, "", bod.farba, bod.hrubka, bod.styl, bod.velkost);
+                TBod bodObr = new TBod(160.0 - bod.velkost, y+30- bod.velkost, "", bod.farba, bod.hrubka, bod.styl, bod.velkost,TIS.planik.sadenie);
                 bodObr.draw((Graphics2D) g);
             }
 

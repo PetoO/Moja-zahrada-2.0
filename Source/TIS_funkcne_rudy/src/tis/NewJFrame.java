@@ -209,14 +209,17 @@ public class NewJFrame extends javax.swing.JFrame {
 
                 public void mouseDragged(java.awt.event.MouseEvent evt) {
                     if (prvok.typ == 1) {
-                        TBod bod = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost);
+                        TBod bod = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost, TIS.planik.sadenie);
                         TIS.planik.aktivnyBod = bod;
+                        TIS.vr.setInformationLabel(bod.meno);
                     } else if (prvok.typ == 2) {
-                        TBod bod = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost);
+                        TBod bod = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost, TIS.planik.sadenie);
                         TIS.planik.aktivnyBod = bod;
+                        TIS.vr.setInformationLabel(bod.meno);
                     } else if (prvok.typ == 3) {
-                        TBod bod = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost);
+                        TBod bod = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost, TIS.planik.sadenie);
                         TIS.planik.aktivnyBod = bod;
+                        TIS.vr.setInformationLabel(bod.meno);
                     }
 
                     TIS.vr.repaint();
@@ -227,9 +230,9 @@ public class NewJFrame extends javax.swing.JFrame {
                     if (!(evt.isControlDown())) {
 
                         if (prvok.typ == 1) {
-                            TBod boda = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost);
+                            TBod boda = new TBod(evt.getX() + marginLeft + prvok.num * widthButton + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue(), evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost, TIS.planik.sadenie);
                             TIS.planik.addPrvok(boda);
-                            TBod bod = new TBod(-9999, 0, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost);
+                            TBod bod = new TBod(-9999, 0, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost,TIS.planik.sadenie);
                             TIS.planik.aktivnyBod = bod;
                         } else if (prvok.typ == 2) {
 //                            if (TIS.planik.aktivnaCiara.body.get(0).x == -9999) {
@@ -238,7 +241,7 @@ public class NewJFrame extends javax.swing.JFrame {
                             TCiara ciara = new TCiara(xax, evt.getY() - TIS.planik.MovedY, xax, evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl);
                             TIS.planik.aktivnaCiara = ciara;
                             //TIS.planik.aktivnyPrvokInt = 1;
-                            TBod bod = new TBod(-9999, 0, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost);
+                            TBod bod = new TBod(-9999, 0, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost,TIS.planik.sadenie);
                             TIS.planik.aktivnyBod = bod;
                             ciaraNeVytvorena = true;
                         } else if (prvok.typ == 3) {
@@ -247,7 +250,7 @@ public class NewJFrame extends javax.swing.JFrame {
                             double xax = evt.getX() + prvok.num * widthButton + marginLeft + prvok.num * marginbutton - TIS.planik.MovedX - scrollPane.getHorizontalScrollBar().getValue();
                             TPlocha plocha = new TPlocha(xax, evt.getY() - TIS.planik.MovedY, xax, evt.getY() - TIS.planik.MovedY, prvok.name, prvok.farba, prvok.hrubka, prvok.styl);
                             TIS.planik.aktivnaPlocha = plocha;
-                            TBod bod = new TBod(-9999, 0, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost);
+                            TBod bod = new TBod(-9999, 0, prvok.name, prvok.farba, prvok.hrubka, prvok.styl, prvok.velkost,TIS.planik.sadenie);
                             TIS.planik.aktivnyBod = bod;
 //                            }
                             plochaNeVytvorena = true;
@@ -447,6 +450,11 @@ public class NewJFrame extends javax.swing.JFrame {
         jButton9 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
+        jButton10 = new javax.swing.JButton();
+        jToggleButton2 = new javax.swing.JToggleButton();
+        jToggleButton3 = new javax.swing.JToggleButton();
+        jToggleButton4 = new javax.swing.JToggleButton();
+        jCheckBox1 = new javax.swing.JCheckBox();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem10 = new javax.swing.JMenuItem();
@@ -581,7 +589,7 @@ public class NewJFrame extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setText("info");
+        jLabel1.setText("Info Panel");
         jLabel1.setToolTipText("");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -590,13 +598,53 @@ public class NewJFrame extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(76, Short.MAX_VALUE))
+                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 22, Short.MAX_VALUE)
         );
+
+        jButton10.setText("Tabuľka prvkov");
+        jButton10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton10ActionPerformed(evt);
+            }
+        });
+
+        jToggleButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/sadenie1.png"))); // NOI18N
+        jToggleButton2.setSelected(true);
+        jToggleButton2.setToolTipText("");
+        jToggleButton2.setPressedIcon(new javax.swing.ImageIcon(getClass().getResource("/sadenie1.png"))); // NOI18N
+        jToggleButton2.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/sadenie1.png"))); // NOI18N
+        jToggleButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton2ActionPerformed(evt);
+            }
+        });
+
+        jToggleButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/sadenie2.png"))); // NOI18N
+        jToggleButton3.setToolTipText("");
+        jToggleButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton3ActionPerformed(evt);
+            }
+        });
+
+        jToggleButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/sadenie3.png"))); // NOI18N
+        jToggleButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton4ActionPerformed(evt);
+            }
+        });
+
+        jCheckBox1.setSelected(true);
+        jCheckBox1.setText("Zobraz mriežku");
+        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox1ActionPerformed(evt);
+            }
+        });
 
         jMenu1.setText("File");
 
@@ -691,10 +739,19 @@ public class NewJFrame extends javax.swing.JFrame {
                         .addComponent(jButton7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
                         .addComponent(jToggleButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton8, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE))
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 199, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jCheckBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jToggleButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jToggleButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jToggleButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -708,15 +765,28 @@ public class NewJFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton8)
+                        .addGap(28, 28, 28)
+                        .addComponent(jButton10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton9)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(7, 7, 7)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jToggleButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jToggleButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(173, 173, 173)
+                        .addComponent(jToggleButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton7)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton8)
-                .addGap(29, 29, 29)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton9)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 152, Short.MAX_VALUE)
+                .addComponent(jCheckBox1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 62, Short.MAX_VALUE)
                 .addComponent(jButton1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -751,7 +821,7 @@ public class NewJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4MouseClicked
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        TIS.planik.zobrazTabulku();
+        TIS.planik.zobrazLegendu();
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
@@ -856,6 +926,35 @@ public class NewJFrame extends javax.swing.JFrame {
         TIS.planik.zmenPozadie();
     }//GEN-LAST:event_jMenuItem13ActionPerformed
 
+    private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton10ActionPerformed
+        // TODO add your handling code here:
+        TIS.planik.zobrazTabulku();
+    }//GEN-LAST:event_jButton10ActionPerformed
+
+    private void jToggleButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton2ActionPerformed
+        // TODO add your handling code here:
+        TIS.planik.nastavSadenie(0);
+        nastavSadenie(0);
+    }//GEN-LAST:event_jToggleButton2ActionPerformed
+
+    private void jToggleButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton3ActionPerformed
+        // TODO add your handling code here:
+        TIS.planik.nastavSadenie(1);
+        nastavSadenie(1);
+    }//GEN-LAST:event_jToggleButton3ActionPerformed
+
+    private void jToggleButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton4ActionPerformed
+        // TODO add your handling code here:
+        TIS.planik.nastavSadenie(2);
+        nastavSadenie(2);
+    }//GEN-LAST:event_jToggleButton4ActionPerformed
+
+    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
+        // TODO add your handling code here:
+        TIS.planik.mriezka=jCheckBox1.isSelected();
+        
+    }//GEN-LAST:event_jCheckBox1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -915,10 +1014,54 @@ public class NewJFrame extends javax.swing.JFrame {
     public void setInformationLabel(String s) {
         jLabel1.setText(s);
    }
+    
+    //peto
+    
+    /**
+     * nastavi text na jTextField2 a jTextField1
+     */
+    public void setDimensionText(String s1, String s2) {
+        jTextField1.setText(s1);
+        jTextField2.setText(s2);
+    }
+    
+
+    public String getDimensionText1() {
+        return jTextField1.getText();
+        
+    }
+
+    public String getDimensionText2() {
+        return jTextField2.getText();
+        
+    }
+    
+        /**
+     * zmeni zobrazenie tlacidiel sadenia
+     */
+    
+    public void nastavSadenie(int i) {
+        if(i==0){
+            jToggleButton2.setSelected(true);
+            jToggleButton4.setSelected(false);
+            jToggleButton3.setSelected(false);
+        }
+        if(i==1){
+            jToggleButton2.setSelected(false);
+            jToggleButton4.setSelected(false);
+            jToggleButton3.setSelected(true);
+        }
+        if(i==2){
+            jToggleButton2.setSelected(false);
+            jToggleButton4.setSelected(true);
+            jToggleButton3.setSelected(false);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private java.awt.Canvas canvas1;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton10;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -927,6 +1070,7 @@ public class NewJFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
@@ -953,6 +1097,9 @@ public class NewJFrame extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JToggleButton jToggleButton1;
+    private javax.swing.JToggleButton jToggleButton2;
+    private javax.swing.JToggleButton jToggleButton3;
+    private javax.swing.JToggleButton jToggleButton4;
     private java.awt.PopupMenu popupMenu1;
     private java.awt.PopupMenu popupMenu2;
     // End of variables declaration//GEN-END:variables

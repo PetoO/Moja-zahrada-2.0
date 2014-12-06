@@ -8,27 +8,13 @@ package tis;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import static java.lang.Math.E;
 import java.util.ArrayList;
-import java.util.Collections;
-import static java.util.Collections.list;
-import static java.util.Collections.sort;
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -39,7 +25,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import org.apache.poi.ss.format.CellFormatPart;
 
 
  /**
@@ -62,7 +47,7 @@ public class JPaletka extends JPanel {
         vygenerujPrvky();
 
     }
- /**
+    /**
      * slúži na kreslenie a refreshovanie paletky
      * kreslí názov prvku, obrázok a potrebné checkboxy s buttonom
      * @param g 

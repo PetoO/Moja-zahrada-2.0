@@ -21,7 +21,7 @@ import javax.swing.JPanel;
  */
 public class TIS {
     static TPlan planik;
-  public static TPaleta paletka;
+  //public static TPaleta paletka;
     static public TPrvok p;
     static public NewJFrame vr;
     public static GPanel G;
