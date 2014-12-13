@@ -9,8 +9,6 @@ import java.awt.print.PrinterException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;

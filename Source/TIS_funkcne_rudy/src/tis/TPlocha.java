@@ -1,17 +1,13 @@
 package tis;
 
-import java.awt.BasicStroke;
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.Stroke;
 import java.awt.TexturePaint;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 

@@ -6,14 +6,7 @@
 
 package tis;
 
-import java.awt.BorderLayout;
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.io.IOException;
-import static java.lang.Thread.sleep;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
 
 /**
  *

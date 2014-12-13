@@ -30,7 +30,6 @@ import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,7 +38,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.RowFilter.Entry;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -291,7 +289,8 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             for (TPrvok prvok : prvky) {
                 if (prvok instanceof TBod) {
                     TBod aPrvok = ((TBod) prvok);
-                    aPrvok.presun((int) (pomY - (aPrvok.y)), (int) (aPrvok.x));
+                    aPrvok.presun((int) (pomY - (aPrvok.y)-aPrvok.hrubka-aPrvok.velkost), (int) (aPrvok.x));
+                    System.out.println("X: "+aPrvok.x+" Y: "+aPrvok.y);
                 }
 
                 if (prvok instanceof TCiara) {
@@ -984,6 +983,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             int y=ih-100;
             g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g.setColor(Color.BLACK);
+            
             g.drawLine(120, y, iw-200 , y);
             double m= 100*scale;
             int i=0;
@@ -992,6 +992,7 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
             double c=120;
             g.drawString("meter" ,(int) c , y-10);
             
+            int f=0;
             while(c<=iw-200){
                 g.drawLine((int) c, y-5, (int) c , y+5);
                 g.drawString(i+"" ,(int) c-4 , y+20);
@@ -999,8 +1000,19 @@ public class TPlan implements MouseListener, MouseMotionListener, KeyListener {
                 i++;
             };
             
-            //g.drawImage(ruz, 0, TIS.vr.getHeight() - ruz.getHeight() - 55, iw, ih, TIS.G);
-            //ruzica bude vlavo dole
+            g.drawLine(50, ih-170, 50 , 0);
+            i=0;
+            c=ih-170;
+            while(c>0){
+                if(i>=10){
+                    f=7;
+                }
+                g.drawLine( 45,(int) c, 55 ,(int) c);
+                g.drawString(i+"" , 32-f , (int) c+5);
+                c-=m;
+                i++;
+            };
+
     }
     
      /**
